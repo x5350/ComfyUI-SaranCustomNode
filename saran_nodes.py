@@ -11,9 +11,12 @@ class SaranFileBrowser:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "directory": ("STRING", {"default": "", "multiline": False}),
+                "directory": ("STRING", {"default": "",
+                                         "multiline": False,
+                                         "tooltip": "absolute or relative path (ex: ComfyUI/output/1_prompt)"}),
                 "extension": ("STRING", {"default": ".txt"}),
-                "file_filter": ("STRING", {"default": "*"}),
+                "file_filter": ("STRING", {"default": "*",
+                                           "tooltip": "ex: ZIT_*, Flux_*, "}),
             }
         }
 
@@ -22,7 +25,7 @@ class SaranFileBrowser:
     FUNCTION = "browse_files"
     CATEGORY = "SaranCustomNode"
 
-    def browse_files(self, directory, extension, filter):
+    def browse_files(self, directory, extension, file_filter):
         if not directory or not os.path.exists(directory):
             return ("",)
 
@@ -31,13 +34,16 @@ class SaranFileBrowser:
             ext = "." + ext
 
         matched_files = []
+        if file_filter and file_filter != "*":
+            if not file_filter.endswith(ext):
+                file_filter = file_filter + ext
         try:
             for root, _, files in os.walk(directory):
                 for file in files:
                     if ext and not file.endswith(ext):
                         continue
-                    if filter and filter != "*":
-                        if not fnmatch.fnmatch(file, filter):
+                    if file_filter and file_filter != "*":
+                        if not fnmatch.fnmatch(file, file_filter):
                             continue
                     matched_files.append(file)
         except Exception as e:
